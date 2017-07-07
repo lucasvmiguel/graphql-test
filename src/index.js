@@ -1,6 +1,7 @@
 import express from 'express';
 import graphqlHTTP from 'express-graphql';
 import R from 'ramda';
+import cors from 'cors';
 
 import schema from './schema';
 import Repository from './repo';
@@ -16,25 +17,24 @@ phonesRepo.save({name: 'Moto G1'});
 phonesRepo.save({name: 'Moto G2'});
 phonesRepo.save({name: 'Moto G3'});
 
-const completeSalesman = (salesman) => {
-  let phones = [];
+const containsField = (field, info) => {
+  return R.compose(
+    R.contains(field),
+    R.map(s => s.name.value),
+    R.path(['fieldNodes', 0, 'selectionSet', 'selections'])
+  )(info);
+}
 
-  salesman.phones = salesman.phones.map(phoneId => phonesRepo.find(phoneId));
+const completeSalesman = (salesman, info) => {
+  if (containsField('phones', info)) salesman.phones = salesman.phones.map(phoneId => phonesRepo.find(phoneId));
 
   return salesman;
 };
 
-const root = {
+const resolvers = {
   addSalesman: ({salesman}) => salesmenRepo.save(salesman),
-  salesman: ({id}) => salesmenRepo.find(id).then(completeSalesman),
-  salesmen: (_, _, {fieldNodes}) => {
-    // console.log('obj', obj);
-    // console.log('args', args);
-    // fieldNodes.selectionSet.selections[x].name.value === 'phones'
-    // console.log('context', JSON.stringify(fieldNodes));
-
-    return salesmenRepo.all().then(salesmen => salesmen.map(completeSalesman));
-  },
+  salesman: ({id}, context, info) => salesmenRepo.find(id).then((sm) => completeSalesman(sm, info)),
+  salesmen: (args, context, info) => salesmenRepo.all().then((sms) => sms.map((sm) => completeSalesman(sm, info))),
 
   addPhone: ({phone}) => phonesRepo.save(salesman),
   phone: ({id}) => phonesRepo.find(id),
@@ -42,9 +42,10 @@ const root = {
 };
 
 var app = express();
-app.use('/graphql', graphqlHTTP({
+
+app.use('/graphql', cors(), graphqlHTTP({
   schema: schema,
-  rootValue: root,
+  rootValue: resolvers,
   graphiql: true,
 }));
 
