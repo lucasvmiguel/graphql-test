@@ -32,13 +32,15 @@ const completeSalesman = (salesman, info) => {
 };
 
 const resolvers = {
-  addSalesman: ({salesman}) => salesmenRepo.save(salesman),
+  // queries
   salesman: ({id}, context, info) => salesmenRepo.find(id).then((sm) => completeSalesman(sm, info)),
   salesmen: (args, context, info) => salesmenRepo.all().then((sms) => sms.map((sm) => completeSalesman(sm, info))),
-
-  addPhone: ({phone}) => phonesRepo.save(salesman),
   phone: ({id}) => phonesRepo.find(id),
-  phones: () => phonesRepo.all()
+  phones: () => phonesRepo.all(),
+
+  // mutations
+  addSalesman: ({salesman}) => salesmenRepo.save(salesman),
+  addPhone: ({phone}) => phonesRepo.save(salesman)
 };
 
 var app = express();

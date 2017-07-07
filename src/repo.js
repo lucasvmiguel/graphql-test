@@ -8,10 +8,10 @@ class Repository {
 
   save(item) {
     return new Promise((resolve, reject) => {
-      this.autoIncrement += 1; 
+      this.autoIncrement += 1;
       item.id = this.autoIncrement.toString();
       this.items = R.append(item, this.items);
-      resolve(this.items);
+      resolve(R.clone(item));
     });
   }
 
@@ -21,7 +21,7 @@ class Repository {
 
       if (index !== -1) {
         this.items = R.update(index, item, this.items);
-        return resolve(R.indexOf(index, this.items));
+        return resolve(R.clone(item));
       }
 
       reject('notfound')
@@ -37,9 +37,9 @@ class Repository {
   find(id) {
     return new Promise((resolve, reject) => {
       const item = R.find(R.propEq('id', id))(this.items);
-      
+
       if (!item) return reject('notfound');
-      
+
       resolve(R.clone(item));
     });
   }

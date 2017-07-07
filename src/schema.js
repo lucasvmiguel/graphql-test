@@ -7,14 +7,18 @@ const schema = buildSchema(`
     salesmen: [Salesman]!
     # Get a saleman
     salesman(id: ID!): Salesman
-    # Save a salesman
-    addSalesman(salesman: SalesmanInput!): Boolean
     # Get all phones
     phones: [Phone]!
     # Get a phone
     phone(id: ID!): Phone
+  }
+
+  # All possible mutations
+  type Mutation {
+    # Save a salesman
+    addSalesman(salesman: SalesmanInput!): Salesman
     # Save a phone
-    addPhone(phone: PhoneInput!): Boolean
+    addPhone(phone: PhoneInput!): Phone
   }
 
   # Salesman Input
